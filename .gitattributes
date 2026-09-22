@@ -1,0 +1,11 @@
+# Keep LF so shell scripts clone runnable on macOS/Linux
+* text=auto eol=lf
+*.command text eol=lf
+*.sh      text eol=lf
+*.swift   text eol=lf
+*.md      text eol=lf
+Makefile  text eol=lf
+
+# Binaries
+*.png binary
+*.icns binary

@@ -1,0 +1,13 @@
+# build outputs
+TapeCap.app/
+*.zip
+AppIcon.icns
+.AppIcon.iconset/
+
+# tapecap source-build artifacts
+vendor/tapecap/build/
+.tapecap-src/
+
+# macOS cruft
+.DS_Store
+._*
