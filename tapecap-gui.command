@@ -164,6 +164,7 @@ while true; do
       [ -n "$GUID" ] && ARGS+=(--guid "$GUID")
       [ "$FMT" != "auto" ] && ARGS+=(--format "$FMT")
       [ -n "$DUR" ] && ARGS+=(--duration "$DUR")
+      ARGS+=(--eot-timeout 10000)   # wait 10s for data before auto-stop (default 5s)
       ARGS+=(--verbose "$OUTF")
       echo "── Capturing → $OUTF  ($FMT) ──"
       echo "» Recording. Press Ctrl-C in this window to stop and finalize."

@@ -307,6 +307,9 @@ final class Controller: NSObject, NSApplicationDelegate {
         if fmt != "auto" { args += ["--format", fmt] }
         let dur = durationField.stringValue.trimmingCharacters(in: .whitespaces)
         if !dur.isEmpty { args += ["--duration", dur] }
+        // Wait 10s (not tapecap's 5s default) for the deck to spin up and deliver
+        // data before auto-stopping on silence.
+        args += ["--eot-timeout", "10000"]
         args += ["--verbose", out.path]
         appendLine("── Capturing → \(out.lastPathComponent)  (\(fmt)) ──", .secondaryLabelColor)
         appendLine("» Recording. Click Stop to finalize the file cleanly.", .systemBlue)
