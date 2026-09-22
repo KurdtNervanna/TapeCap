@@ -25,6 +25,23 @@ everything."
 
 ---
 
+## Screenshots
+
+Capturing — device picker, format selector, and a colored streaming log with live
+timecode; **Stop** finalizes the file:
+
+![TapeCap capturing](docs/screenshot-capture.png)
+
+After **Refresh Devices** + **Info** — the parsed device list and the deck's
+mode / timecode / format:
+
+![TapeCap devices and info](docs/screenshot-devices.png)
+
+<sub>Rendered previews of the app's real layout and log output (built on a Windows
+dev box; swap in live macOS captures anytime).</sub>
+
+---
+
 ## Requirements
 
 | Thing | How to get it |
