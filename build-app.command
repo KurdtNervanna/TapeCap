@@ -9,8 +9,14 @@
 #     bash build-app.command            # compiles the vendored tapecap + the app
 #     bash build-app.command --build    # force a fresh tapecap rebuild
 #     bash build-app.command /path/to/tapecap   # bundle a prebuilt binary
+#     bash build-app.command --version 1.2.3    # override the app version
 #
-# It produces TapeCap.app next to this script and reveals it in Finder. tapecap's
+# The app version (About box / Get Info) comes from the VERSION file next to this
+# script; --version or TAPECAP_VERSION=… overrides it. Bump VERSION for a release.
+#
+# It produces TapeCap.app next to this script, plus a release-ready
+# TapeCap-<version>-macOS.zip (made with ditto, so exec bits survive), and
+# reveals them in Finder. tapecap's
 # source is vendored, so the normal build is fully offline and self-contained.
 #
 # It picks the best UI your Mac can compile, in this order:
@@ -30,7 +36,8 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 APP="$HERE/TapeCap.app"
 APPNAME="TapeCap"
-VERSION="1.0.0"
+# version: --version arg > $TAPECAP_VERSION > VERSION file > latest git tag > 0.0.0
+VERSION="${TAPECAP_VERSION:-}"
 BUNDLE_ID="com.kurdtnervanna.tapecap"
 
 command -v osascript >/dev/null 2>&1 || { echo "This builder requires macOS."; exit 1; }
@@ -108,13 +115,28 @@ clone_and_make() {   # last resort: fetch upstream, then build
   make_tapecap "$SRC"
 }
 
-# arg / mode: --build|-b forces a fresh build; a path uses that prebuilt binary.
+# arg / mode: --build|-b forces a fresh build; a path uses that prebuilt binary;
+# --version <x.y.z> sets the app version.
 FORCE_BUILD=0; EXPLICIT=""
-case "${1:-}" in
-  --build|-b) FORCE_BUILD=1 ;;
-  "") ;;
-  *) EXPLICIT="$1" ;;
-esac
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --build|-b) FORCE_BUILD=1 ;;
+    --version|-v)
+      [ -n "${2:-}" ] || { echo "--version needs a value, e.g. --version 1.2.3"; exit 1; }
+      VERSION="$2"; shift ;;
+    --version=*) VERSION="${1#--version=}" ;;
+    *) EXPLICIT="$1" ;;
+  esac
+  shift
+done
+if [ -z "$VERSION" ] && [ -f "$HERE/VERSION" ]; then
+  VERSION="$(tr -d ' \t\r\n' < "$HERE/VERSION")"
+fi
+if [ -z "$VERSION" ]; then
+  VERSION="$(git -C "$HERE" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)"
+fi
+VERSION="${VERSION#v}"; VERSION="${VERSION:-0.0.0}"
+echo "» Building $APPNAME $VERSION"
 
 TCBIN=""
 if [ "$FORCE_BUILD" = "1" ]; then
@@ -241,16 +263,25 @@ if [ -x "$APP/Contents/Resources/tapecap" ]; then
 else
   TC_NOTE="tapecap: not bundled — the app will look for it on your PATH at runtime"
 fi
-echo "Done → $APP  [$MODE_NOTE]"
+# release zip — ditto keeps the exec bits and bundle metadata intact
+ZIP="$HERE/$APPNAME-$VERSION-macOS.zip"
+rm -f "$ZIP"
+if ditto -c -k --keepParent "$APP" "$ZIP" >/dev/null 2>&1; then ZIP_NOTE="zip: $(basename "$ZIP")"
+else ZIP="";  ZIP_NOTE="zip: not created (ditto failed)"; fi
+
+echo "Done → $APP  [$MODE_NOTE]  version $VERSION"
 echo "$TC_NOTE"
-open -R "$APP" >/dev/null 2>&1 || true
+echo "$ZIP_NOTE"
+open -R "${ZIP:-$APP}" >/dev/null 2>&1 || true
 osascript >/dev/null 2>&1 <<AS || true
 display dialog "TapeCap.app is ready in:
 
 $HERE
 
+Version: $VERSION
 Mode: $MODE_NOTE
 $TC_NOTE
+$ZIP_NOTE
 
 Double-click it to test." buttons {"OK"} default button "OK" with title "TapeCap — build complete"
 AS

@@ -61,8 +61,10 @@ Run this **on the Mac**, in this folder (it also holds `TapeCap.swift`,
 bash build-app.command
 ```
 
-It produces **`TapeCap.app`** next to the script and reveals it in Finder. It
-picks the best UI your Mac can compile, in this order:
+It produces **`TapeCap.app`** next to the script, plus a release-ready
+**`TapeCap-<version>-macOS.zip`** (made with `ditto`, so the app stays
+launchable), and reveals them in Finder. It picks the best UI your Mac can
+compile, in this order:
 
 1. **Native Swift app** (preferred) — one window with the device picker, format
    selector, action buttons and the colored streaming log. Needs `swiftc` from
@@ -74,6 +76,16 @@ picks the best UI your Mac can compile, in this order:
 
 The icon (`AppIcon.png`) is baked into `.icns` automatically with `sips` +
 `iconutil`.
+
+### Version number
+
+The version shown in the app's About box and Finder's Get Info comes from the
+**`VERSION`** file in this folder. To cut a release, bump `VERSION`, commit, and
+rebuild. For a one-off build you can override it:
+
+```bash
+bash build-app.command --version 1.2.3     # or: TAPECAP_VERSION=1.2.3 bash build-app.command
+```
 
 ### tapecap is built in (self-contained app)
 
